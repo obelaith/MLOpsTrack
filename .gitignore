@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Machine learning files
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# Data
+data/
+datasets/
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+
+# Go
+/bin/
+*.exe
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
