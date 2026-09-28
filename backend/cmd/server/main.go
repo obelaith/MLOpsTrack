@@ -5,10 +5,13 @@ import (
 	"net/http"
 
 	"github.com/obelaith/MLOpsTrack/backend/internal/api"
+	"github.com/obelaith/MLOpsTrack/backend/internal/config"
 )
 
 func main() {
-	port := ":8080"
+	cfg := config.Load()
+
+	port := ":" + cfg.Port
 
 	router := api.NewRouter()
 
