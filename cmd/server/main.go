@@ -5,13 +5,34 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/joho/godotenv"
+
+	"github.com/obelaith/MLOpsTrack/internal/db"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println(".env file not found, using system environment variables")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
+
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		log.Fatal("DATABASE_URL is required")
+	}
+
+	database, err := db.Connect(databaseURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer database.Close()
+
+	log.Println("database connected")
 
 	http.HandleFunc("/health", healthHandler)
 
@@ -25,7 +46,9 @@ func main() {
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	json.NewEncoder(w).Encode(map[string]string{
+	if err := json.NewEncoder(w).Encode(map[string]string{
 		"status": "ok",
-	})
+	}); err != nil {
+		log.Printf("write health response: %v", err)
+	}
 }
