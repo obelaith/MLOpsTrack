@@ -8,6 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 
+	"github.com/obelaith/MLOpsTrack/internal/api"
 	"github.com/obelaith/MLOpsTrack/internal/db"
 )
 
@@ -34,16 +35,24 @@ func main() {
 
 	log.Println("database connected")
 
-	http.HandleFunc("/health", healthHandler)
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/health", healthHandler)
+	mux.HandleFunc("/experiments", api.ExperimentsHandler(database))
 
 	log.Printf("server running on port %s", port)
 
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(map[string]string{
