@@ -27,8 +27,10 @@ func ExperimentsHandler(db *pgxpool.Pool) http.HandlerFunc {
 		switch r.Method {
 		case http.MethodGet:
 			listExperiments(w, r, db)
+
 		case http.MethodPost:
 			createExperiment(w, r, db)
+
 		default:
 			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
 				"error": "method not allowed",

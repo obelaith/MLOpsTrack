@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS runs (
+    id BIGSERIAL PRIMARY KEY,
+    experiment_id BIGINT NOT NULL REFERENCES experiments(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'running',
+    started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    finished_at TIMESTAMPTZ
+);
