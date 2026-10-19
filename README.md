@@ -8,6 +8,8 @@ A lightweight experiment tracking and MLOps platform built with Go and Python.
 - PostgreSQL integration
 - Experiment creation and listing
 - Run creation and listing
+- Run parameter tracking
+- Training metric tracking
 
 ## Tech Stack
 

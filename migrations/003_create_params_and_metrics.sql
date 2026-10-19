@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS run_params (
+    id BIGSERIAL PRIMARY KEY,
+    run_id BIGINT NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    UNIQUE (run_id, key)
+);
+
+CREATE TABLE IF NOT EXISTS metrics (
+    id BIGSERIAL PRIMARY KEY,
+    run_id BIGINT NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    value DOUBLE PRECISION NOT NULL,
+    step BIGINT NOT NULL DEFAULT 0,
+    recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (run_id, name, step)
+);
