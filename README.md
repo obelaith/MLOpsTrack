@@ -11,13 +11,14 @@ A lightweight experiment tracking and MLOps platform built with Go and Python.
 - Run parameter tracking
 - Training metric tracking
 - Run lifecycle tracking (`running`, `completed`, `failed`)
+- Python SDK for experiment and run tracking
 
 ## Tech Stack
 
 - Go
 - PostgreSQL
-- Python planned for the SDK and training integrations
+- Python
 
 ## Status
 
-Early development.
+Under active development.
