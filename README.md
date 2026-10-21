@@ -10,6 +10,7 @@ A lightweight experiment tracking and MLOps platform built with Go and Python.
 - Run creation and listing
 - Run parameter tracking
 - Training metric tracking
+- Run lifecycle tracking (`running`, `completed`, `failed`)
 
 ## Tech Stack
 

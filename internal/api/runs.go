@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -25,6 +26,11 @@ type createRunRequest struct {
 	Name         string `json:"name"`
 }
 
+type finishRunRequest struct {
+	ID     int64  `json:"id"`
+	Status string `json:"status"`
+}
+
 func RunsHandler(db *pgxpool.Pool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -33,6 +39,9 @@ func RunsHandler(db *pgxpool.Pool) http.HandlerFunc {
 
 		case http.MethodPost:
 			createRun(w, r, db)
+
+		case http.MethodPatch:
+			finishRun(w, r, db)
 
 		default:
 			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{
@@ -172,4 +181,71 @@ func listRuns(w http.ResponseWriter, r *http.Request, db *pgxpool.Pool) {
 	}
 
 	writeJSON(w, http.StatusOK, runs)
+}
+
+func finishRun(w http.ResponseWriter, r *http.Request, db *pgxpool.Pool) {
+	var input finishRunRequest
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&input); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "invalid request body",
+		})
+		return
+	}
+
+	if input.ID <= 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "valid id is required",
+		})
+		return
+	}
+
+	if input.Status != "completed" && input.Status != "failed" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{
+			"error": "status must be completed or failed",
+		})
+		return
+	}
+
+	var run Run
+
+	err := db.QueryRow(
+		r.Context(),
+		`
+		UPDATE runs
+		SET status = $1, finished_at = NOW()
+		WHERE id = $2 AND status = 'running'
+		RETURNING id, experiment_id, name, status, started_at, finished_at
+		`,
+		input.Status,
+		input.ID,
+	).Scan(
+		&run.ID,
+		&run.ExperimentID,
+		&run.Name,
+		&run.Status,
+		&run.StartedAt,
+		&run.FinishedAt,
+	)
+
+	if err == pgx.ErrNoRows {
+		writeJSON(w, http.StatusNotFound, map[string]string{
+			"error": "run not found or already finished",
+		})
+		return
+	}
+
+	if err != nil {
+		log.Printf("finish run: %v", err)
+
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"error": "could not finish run",
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, run)
 }
