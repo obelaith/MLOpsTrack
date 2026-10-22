@@ -4,10 +4,9 @@ import torch
 from sdk.mlopstrack import Client
 
 
-def main():
+def train(client, experiment_id, learning_rate=0.2):
     torch.manual_seed(42)
 
-    # Generate a simple binary classification dataset.
     x = torch.randn(1000, 2)
     y = (x[:, 0] + x[:, 1] > 0).float().unsqueeze(1)
 
@@ -16,17 +15,16 @@ def main():
 
     model = torch.nn.Linear(2, 1)
     loss_fn = torch.nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.2)
-
-    client = Client()
-    experiment = client.create_experiment(
-        "binary-classification",
-        "PyTorch training integration using synthetic data",
+    optimizer = torch.optim.SGD(
+        model.parameters(), lr=learning_rate
     )
-    run = client.start_run(experiment["id"], "sgd-baseline")
+
+    run = client.start_run(
+        experiment_id, f"sgd-lr-{learning_rate:g}"
+    )
 
     try:
-        run.log_param("learning_rate", 0.2)
+        run.log_param("learning_rate", learning_rate)
         run.log_param("epochs", 20)
         run.log_param("optimizer", "SGD")
         run.log_param("seed", 42)
@@ -52,17 +50,33 @@ def main():
             run.log_metric("val_accuracy", accuracy, epoch)
 
             print(
-                f"Epoch {epoch:02d} | "
-                f"Loss: {loss.item():.4f} | "
-                f"Val Accuracy: {accuracy:.2%}"
+                f"LR {learning_rate:g} | Epoch {epoch:02d} | "
+                f"Loss {loss.item():.4f} | "
+                f"Accuracy {accuracy:.2%}"
             )
 
+        run.finish()
+
     except Exception:
-        run.finish("failed")
+        try:
+            run.finish("failed")
+        except Exception as error:
+            print(f"Could not mark run failed: {error}")
         raise
 
-    run.finish()
-    print(f"Training completed. Run ID: {run.id}")
+    print(f"Completed run {run.id}")
+    return run.id
+
+
+def main():
+    client = Client()
+
+    experiment = client.create_experiment(
+        "binary-classification",
+        "PyTorch classification experiment",
+    )
+
+    train(client, experiment["id"])
 
 
 if __name__ == "__main__":

@@ -8,10 +8,15 @@ class Client:
     def __init__(self, base_url="http://localhost:8080"):
         self.base_url = base_url.rstrip("/")
 
-    def _request(self, method, path, data):
+    def _request(self, method, path, data=None):
+        body = None
+
+        if data is not None:
+            body = json.dumps(data, allow_nan=False).encode("utf-8")
+
         request = Request(
             self.base_url + path,
-            data=json.dumps(data, allow_nan=False).encode("utf-8"),
+            data=body,
             headers={"Content-Type": "application/json"},
             method=method,
         )
@@ -48,6 +53,16 @@ class Client:
         })
 
         return Run(self, data["id"])
+
+    def list_runs(self, experiment_id):
+        return self._request(
+            "GET", f"/runs?experiment_id={experiment_id}"
+        )
+
+    def list_metrics(self, run_id):
+        return self._request(
+            "GET", f"/metrics?run_id={run_id}"
+        )
 
 
 class Run:
