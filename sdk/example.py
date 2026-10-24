@@ -1,6 +1,5 @@
 
-from mlopstrack import Client
-
+from sdk.mlopstrack import Client
 
 client = Client()
 
