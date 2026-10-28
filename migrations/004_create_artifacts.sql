@@ -1,0 +1,9 @@
+
+CREATE TABLE IF NOT EXISTS artifacts (
+    id BIGSERIAL PRIMARY KEY,
+    run_id BIGINT NOT NULL REFERENCES runs(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    size BIGINT NOT NULL,
+    uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (run_id, name)
+);

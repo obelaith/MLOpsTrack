@@ -3,6 +3,9 @@ import torch
 
 from sdk.mlopstrack import Client
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 
 def train(client, experiment_id, learning_rate=0.2):
     torch.manual_seed(42)
@@ -54,6 +57,12 @@ def train(client, experiment_id, learning_rate=0.2):
                 f"Loss {loss.item():.4f} | "
                 f"Accuracy {accuracy:.2%}"
             )
+
+        
+        with TemporaryDirectory() as directory:
+            model_path = Path(directory) / "model.pt"
+            torch.save(model.state_dict(), model_path)
+            run.log_artifact(model_path)
 
         run.finish()
 

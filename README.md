@@ -15,6 +15,8 @@ A lightweight experiment tracking and MLOps platform built with Go and Python.
 - PyTorch training integration with automatic metric logging
 - Learning-rate comparison across tracked training runs
 - Automated API request validation tests
+- Automated Go testing with GitHub Actions
+- Model artifact upload, listing, and download
 
 ## Tech Stack
 
@@ -62,6 +64,27 @@ Check code:
 ```bash
 go vet ./...
 ```
+
+### Database Integration Tests
+
+Database integration tests use a separate PostgreSQL
+database named `mlopstrack_test`.
+
+Apply the SQL migrations from the `migrations/`
+directory before running the tests.
+
+Set `TEST_DATABASE_URL` to the test database connection
+string, then run:
+
+    go test -v ./internal/api -run TestDatabaseIntegration -count=1
+
+The tests verify experiment and run creation, database
+reads, parameter and metric upserts, and run completion.
+
+Test records are removed automatically after execution.
+
+If `TEST_DATABASE_URL` is not set, the integration test
+is skipped.
 
 ## Experiment Comparison
 

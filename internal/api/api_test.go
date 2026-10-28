@@ -87,6 +87,15 @@ func TestInvalidRequests(t *testing.T) {
 			body:    `{"run_id":1,"name":"loss","value":0.5,"step":-1}`,
 			want:    http.StatusBadRequest,
 		},
+
+		{
+			name:    "invalid artifact filename",
+			handler: ArtifactsHandler(nil, "unused"),
+			method:  http.MethodPost,
+			path:    "/artifacts?run_id=1&name=../model.pt",
+			body:    "test",
+			want:    http.StatusBadRequest,
+		},
 	}
 
 	for _, test := range tests {

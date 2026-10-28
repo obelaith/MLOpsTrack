@@ -39,6 +39,7 @@ func TestDatabaseIntegration(t *testing.T) {
 	mux.HandleFunc("/runs", RunsHandler(database))
 	mux.HandleFunc("/params", ParamsHandler(database))
 	mux.HandleFunc("/metrics", MetricsHandler(database))
+	mux.HandleFunc("/artifacts", ArtifactsHandler(database, t.TempDir()))
 
 	var experiment Experiment
 	checkRequest(t, mux, "POST", "/experiments",
@@ -104,6 +105,37 @@ func TestDatabaseIntegration(t *testing.T) {
 		"", 200, &metrics)
 	if len(metrics) != 1 || metrics[0].Value != 0.25 {
 		t.Fatalf("unexpected metrics: %+v", metrics)
+	}
+
+	artifactPath := fmt.Sprintf(
+		"/artifacts?run_id=%d&name=model.pt", run.ID,
+	)
+
+	var artifact Artifact
+	checkRequest(t, mux, "POST", artifactPath,
+		"test model weights", 201, &artifact)
+
+	if artifact.RunID != run.ID || artifact.Name != "model.pt" ||
+		artifact.Size != int64(len("test model weights")) {
+		t.Fatalf("unexpected artifact: %+v", artifact)
+	}
+
+	var artifacts []Artifact
+	checkRequest(t, mux, "GET",
+		fmt.Sprintf("/artifacts?run_id=%d", run.ID),
+		"", 200, &artifacts)
+
+	if len(artifacts) != 1 || artifacts[0].ID != artifact.ID {
+		t.Fatalf("unexpected artifacts: %+v", artifacts)
+	}
+
+	request := httptest.NewRequest("GET", artifactPath, nil)
+	response := httptest.NewRecorder()
+	mux.ServeHTTP(response, request)
+
+	if response.Code != 200 || response.Body.String() != "test model weights" {
+		t.Fatalf("artifact download failed: %d %s",
+			response.Code, response.Body.String())
 	}
 
 	var finished Run
