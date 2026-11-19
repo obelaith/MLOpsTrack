@@ -34,6 +34,16 @@
         #message {
             color: #666;
         }
+
+
+        #experiments tr {
+            cursor: pointer;
+        }
+
+        #experiments tr:hover {
+            background: #eee;
+        }
+
     </style>
 </head>
 <body>
@@ -54,7 +64,82 @@
         <tbody id="experiments"></tbody>
     </table>
 
+
+<section id="runs-section" hidden>
+    <h2 id="runs-title">Runs</h2>
+
+    <p id="runs-message"></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Started</th>
+                <th>Finished</th>
+            </tr>
+        </thead>
+        <tbody id="runs"></tbody>
+    </table>
+</section>
+
+
     <script>
+
+
+        async function loadRuns(experiment) {
+            const section = document.getElementById("runs-section");
+            const title = document.getElementById("runs-title");
+            const table = document.getElementById("runs");
+            const message = document.getElementById("runs-message");
+
+            section.hidden = false;
+            title.textContent = "Runs - " + experiment.name;
+            table.replaceChildren();
+            message.textContent = "Loading runs...";
+
+            try {
+                const response = await fetch(
+                    `/runs?experiment_id=${experiment.id}`
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to load runs");
+                }
+
+                const runs = await response.json();
+                message.textContent = "";
+
+                if (runs.length === 0) {
+                    message.textContent = "No runs yet.";
+                    return;
+                }
+
+                for (const run of runs) {
+                    const row = table.insertRow();
+
+                    const values = [
+                        run.id,
+                        run.name,
+                        run.status,
+                        new Date(run.started_at).toLocaleString(),
+                        run.finished_at
+                            ? new Date(run.finished_at).toLocaleString()
+                            : "-"
+                    ];
+
+                    for (const value of values) {
+                        row.insertCell().textContent = value;
+                    }
+                }
+            } catch (error) {
+                message.textContent = error.message;
+            }
+        }
+
+
+
         async function loadExperiments() {
             const table = document.getElementById("experiments");
             const message = document.getElementById("message");
@@ -76,6 +161,8 @@
 
                 for (const experiment of experiments) {
                     const row = table.insertRow();
+
+                    row.addEventListener("click", () => loadRuns(experiment));
 
                     const values = [
                         experiment.id,
