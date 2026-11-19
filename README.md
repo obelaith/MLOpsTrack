@@ -17,32 +17,13 @@ A lightweight experiment tracking and MLOps platform built with Go and Python.
 - Automated API request validation tests
 - Automated Go testing with GitHub Actions
 - Model artifact upload, listing, and download
+- Basic web dashboard for viewing experiments
 
 ## Tech Stack
 
 - Go
 - PostgreSQL
 - Python
-
-
-## Tests
-
-Run the Go test suite:
-
-    go test ./...
-
-Run tests with detailed output:
-
-    go test -v ./internal/api
-
-Run Go  analysis:
-
-    go vet ./...
-
-the API validation tests check invalid request bodies,
-missing required fields, unsupported HTTP methods,
-and invalid parameters without requiring a database.
-
 
 
 ## Tests

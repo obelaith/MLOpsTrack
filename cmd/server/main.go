@@ -43,6 +43,7 @@ func main() {
 	mux.HandleFunc("/params", api.ParamsHandler(database))
 	mux.HandleFunc("/metrics", api.MetricsHandler(database))
 	mux.HandleFunc("/artifacts", api.ArtifactsHandler(database, "artifacts"))
+	mux.Handle("/", http.FileServer(http.Dir("web")))
 
 	log.Printf("server running on port %s", port)
 
