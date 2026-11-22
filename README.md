@@ -17,7 +17,8 @@ A lightweight experiment tracking and MLOps platform built with Go and Python.
 - Automated API request validation tests
 - Automated Go testing with GitHub Actions
 - Model artifact upload, listing, and download
-- Web dashboard for viewing experiments and runs
+- Initial (for testing) web dashboard for viewing experiments, runs, parameters, and metrics
+
 
 ## Tech Stack
 

@@ -36,13 +36,15 @@
         }
 
 
-        #experiments tr {
+        
+        #experiments tr, #runs tr {
             cursor: pointer;
         }
 
-        #experiments tr:hover {
+        #experiments tr:hover, #runs tr:hover {
             background: #eee;
         }
+
 
     </style>
 </head>
@@ -85,10 +87,119 @@
 </section>
 
 
+<section id="details-section" hidden>
+    <h2 id="details-title">Run Details</h2>
+    <p id="details-message"></p>
+
+    <h3>Parameters</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody id="params"></tbody>
+    </table>
+    <p id="params-message"></p>
+
+    <h3>Metrics</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Step</th>
+                <th>Value</th>
+                <th>Recorded</th>
+            </tr>
+        </thead>
+        <tbody id="metrics"></tbody>
+    </table>
+    <p id="metrics-message"></p>
+</section>
+
+
+
     <script>
 
 
+        let selectedRunId = null;
+
+        async function loadRunDetails(run) {
+            selectedRunId = run.id;
+
+            const section = document.getElementById("details-section");
+            const title = document.getElementById("details-title");
+            const message = document.getElementById("details-message");
+            const paramsTable = document.getElementById("params");
+            const metricsTable = document.getElementById("metrics");
+            const paramsMessage = document.getElementById("params-message");
+            const metricsMessage = document.getElementById("metrics-message");
+
+
+
+
+            section.hidden = false;
+            title.textContent = "Run Details - " + run.name;
+            message.textContent = "Loading...";
+            paramsTable.replaceChildren();
+            metricsTable.replaceChildren();
+            paramsMessage.textContent = "";
+            metricsMessage.textContent = "";
+
+            try {
+                const [paramsResponse, metricsResponse] = await Promise.all([
+                    fetch(`/params?run_id=${run.id}`),
+                    fetch(`/metrics?run_id=${run.id}`)
+                ]);
+
+                if (!paramsResponse.ok || !metricsResponse.ok) {
+                    throw new Error("Failed to load run details");
+                }
+
+                const params = await paramsResponse.json();
+                const metrics = await metricsResponse.json();
+
+                if (selectedRunId !== run.id) return;
+
+                message.textContent = "";
+
+                for (const param of params) {
+                    const row = paramsTable.insertRow();
+                    row.insertCell().textContent = param.key;
+                    row.insertCell().textContent = param.value;
+                }
+
+                for (const metric of metrics) {
+                    const row = metricsTable.insertRow();
+                    row.insertCell().textContent = metric.name;
+                    row.insertCell().textContent = metric.step;
+                    row.insertCell().textContent = metric.value;
+                    row.insertCell().textContent =
+                        new Date(metric.recorded_at).toLocaleString();
+                }
+
+                if (params.length === 0) {
+                    paramsMessage.textContent = "No parameters logged.";
+                }
+
+                if (metrics.length === 0) {
+                    metricsMessage.textContent = "No metrics logged.";
+                }
+            } catch (error) {
+                if (selectedRunId === run.id) {
+                    message.textContent = error.message;
+                }
+            }
+        }
+
+
+
         async function loadRuns(experiment) {
+
+            selectedRunId = null;
+            document.getElementById("details-section").hidden = true;
+            
             const section = document.getElementById("runs-section");
             const title = document.getElementById("runs-title");
             const table = document.getElementById("runs");
@@ -118,6 +229,8 @@
 
                 for (const run of runs) {
                     const row = table.insertRow();
+
+                    row.addEventListener("click", () => loadRunDetails(run));
 
                     const values = [
                         run.id,
